@@ -37,28 +37,32 @@
     },
     {
       "parameters": {
-        "operation": "executeQuery",
-        "query": "SELECT id, name, email, phone, sources FROM persons WHERE email = '{{ $json._norm_email }}' OR phone = '{{ $json._norm_phone }}' LIMIT 5",
+        "method": "GET",
+        "url": "=http://localhost:5050/api/persons",
         "options": {}
       },
       "id": "db-lookup",
-      "name": "SQLite: Check Duplicate",
-      "type": "n8n-nodes-base.sqlite",
-      "typeVersion": 1,
-      "position": [940, 300],
-      "credentials": {
-        "sqlite": {
-          "id": "consultbae-sqlite",
-          "name": "ConsultBae DB"
-        }
-      }
+      "name": "HTTP: Fetch Persons DB",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [940, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Filter the full persons list for a match on email OR phone\nconst incoming = $('Normalize Fields').first().json;\nconst allPersons = $input.first().json;\n\nconst matches = (Array.isArray(allPersons) ? allPersons : []).filter(p => {\n  const emailMatch = incoming._norm_email && p.email && p.email.toLowerCase() === incoming._norm_email;\n  const phoneMatch = incoming._norm_phone && p.phone && p.phone === incoming._norm_phone;\n  return emailMatch || phoneMatch;\n});\n\nreturn [{ json: { matches, match_count: matches.length, incoming } }];"
+      },
+      "id": "filter-duplicates",
+      "name": "Filter Duplicates",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1060, 300]
     },
     {
       "parameters": {
         "conditions": {
           "number": [
             {
-              "value1": "={{ $json.length }}",
+              "value1": "={{ $json.match_count }}",
               "operation": "larger",
               "value2": 0
             }
@@ -69,7 +73,7 @@
       "name": "Is Duplicate?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 1,
-      "position": [1170, 300]
+      "position": [1280, 300]
     },
     {
       "parameters": {
@@ -83,24 +87,29 @@
     },
     {
       "parameters": {
-        "authentication": "oAuth2",
-        "resource": "message",
-        "operation": "post",
-        "channel": "#data-alerts",
-        "text": "={{ $json.alert_message }}",
-        "otherOptions": {}
+        "assignments": {
+          "assignments": [
+            {
+              "id": "alert-status",
+              "name": "alert_status",
+              "value": "DUPLICATE FOUND",
+              "type": "string"
+            },
+            {
+              "id": "alert-msg",
+              "name": "alert_message",
+              "value": "={{ $('Build Alert Message').first().json.alert_message }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
       },
       "id": "slack-alert",
-      "name": "Slack: Send Duplicate Alert",
-      "type": "n8n-nodes-base.slack",
-      "typeVersion": 1,
-      "position": [1630, 200],
-      "credentials": {
-        "slackOAuth2Api": {
-          "id": "slack-consultbae",
-          "name": "ConsultBae Slack"
-        }
-      }
+      "name": "Log Duplicate Alert",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3,
+      "position": [1630, 200]
     },
     {
       "parameters": {
@@ -132,9 +141,12 @@
       "main": [[ { "node": "Normalize Fields", "type": "main", "index": 0 } ]]
     },
     "Normalize Fields": {
-      "main": [[ { "node": "SQLite: Check Duplicate", "type": "main", "index": 0 } ]]
+      "main": [[ { "node": "HTTP: Fetch Persons DB", "type": "main", "index": 0 } ]]
     },
-    "SQLite: Check Duplicate": {
+    "HTTP: Fetch Persons DB": {
+      "main": [[ { "node": "Filter Duplicates", "type": "main", "index": 0 } ]]
+    },
+    "Filter Duplicates": {
       "main": [[ { "node": "Is Duplicate?", "type": "main", "index": 0 } ]]
     },
     "Is Duplicate?": {
@@ -144,9 +156,9 @@
       ]
     },
     "Build Alert Message": {
-      "main": [[ { "node": "Slack: Send Duplicate Alert", "type": "main", "index": 0 } ]]
+      "main": [[ { "node": "Log Duplicate Alert", "type": "main", "index": 0 } ]]
     },
-    "Slack: Send Duplicate Alert": {
+    "Log Duplicate Alert": {
       "main": [[ { "node": "Respond to Webhook", "type": "main", "index": 0 } ]]
     },
     "Mark as New Record": {
