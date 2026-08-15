@@ -58,7 +58,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Filter the full persons list for a match on email OR phone\nconst incoming = $('Normalize Fields').first().json;\nconst allPersons = $input.first().json;\n\nconst matches = (Array.isArray(allPersons) ? allPersons : []).filter(p => {\n  const emailMatch = incoming._norm_email && p.email && p.email.toLowerCase() === incoming._norm_email;\n  const phoneMatch = incoming._norm_phone && p.phone && p.phone === incoming._norm_phone;\n  return emailMatch || phoneMatch;\n});\n\nreturn [{ json: { matches, match_count: matches.length, incoming } }];"
+        "jsCode": "// Filter the full persons list for a match on email OR phone\nconst incoming = $('Normalize Fields').first().json;\nconst httpResponse = $input.first().json;\n\n// The API returns an array — it may be nested under the response body\nlet allPersons = [];\nif (Array.isArray(httpResponse)) {\n  allPersons = httpResponse;\n} else if (Array.isArray(httpResponse.data)) {\n  allPersons = httpResponse.data;\n} else {\n  // Sometimes n8n wraps it — try to find the array\n  const vals = Object.values(httpResponse);\n  for (const v of vals) {\n    if (Array.isArray(v)) { allPersons = v; break; }\n  }\n}\n\nconst matches = allPersons.filter(p => {\n  const emailMatch = incoming._norm_email && p.email &&\n    p.email.trim().toLowerCase() === incoming._norm_email.trim().toLowerCase();\n  const phoneMatch = incoming._norm_phone && p.phone &&\n    p.phone.trim() === incoming._norm_phone.trim();\n  return emailMatch || phoneMatch;\n});\n\nreturn [{ json: { matches, match_count: matches.length, incoming } }];"
       },
       "id": "filter-duplicates",
       "name": "Filter Duplicates",
