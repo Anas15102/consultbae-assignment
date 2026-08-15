@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>ConsultBae — Audio Submission</title>
+<style>
+  :root{--bg:#0f1117;--card:#1a1d27;--border:#2e3147;--accent:#6c63ff;--accent2:#4ecca3;--text:#e8eaf6;--sub:#9396a5;--red:#ff6b6b;--green:#4ecca3;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:2rem 1rem;}
+  header{width:100%;max-width:640px;margin-bottom:2rem;}
+  header h1{font-size:1.6rem;font-weight:700;color:#fff;}
+  header h1 span{color:var(--accent);}
+  header p{color:var(--sub);margin-top:.3rem;font-size:.9rem;}
+  nav{display:flex;gap:1rem;margin-top:1rem;}
+  nav a{color:var(--accent);text-decoration:none;font-size:.9rem;padding:.3rem .8rem;border-radius:6px;border:1px solid var(--border);transition:all .2s;}
+  nav a:hover,nav a.active{background:var(--accent);color:#fff;}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:2rem;width:100%;max-width:640px;}
+  .field{margin-bottom:1.2rem;}
+  label{display:block;font-size:.85rem;color:var(--sub);margin-bottom:.4rem;font-weight:500;}
+  input[type=text],input[type=tel]{width:100%;padding:.75rem 1rem;background:#0f1117;border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:1rem;outline:none;transition:border-color .2s;}
+  input:focus{border-color:var(--accent);}
+  .divider{text-align:center;color:var(--sub);font-size:.85rem;margin:1.2rem 0;position:relative;}
+  .divider::before,.divider::after{content:'';position:absolute;top:50%;width:42%;height:1px;background:var(--border);}
+  .divider::before{left:0;} .divider::after{right:0;}
+  .rec-area{border:2px dashed var(--border);border-radius:12px;padding:2rem;text-align:center;}
+  .rec-area p{color:var(--sub);font-size:.9rem;margin-bottom:1rem;}
+  .btn{display:inline-flex;align-items:center;gap:.5rem;padding:.75rem 1.5rem;border-radius:8px;border:none;cursor:pointer;font-size:.95rem;font-weight:600;transition:all .2s;}
+  .btn-primary{background:var(--accent);color:#fff;}
+  .btn-primary:hover{background:#5a52e8;}
+  .btn-danger{background:var(--red);color:#fff;}
+  .btn-danger:hover{background:#e05555;}
+  .btn-success{background:var(--green);color:#0f1117;}
+  .btn-outline{background:transparent;color:var(--accent);border:1px solid var(--accent);}
+  .btn-outline:hover{background:var(--accent);color:#fff;}
+  .btn:disabled{opacity:.4;cursor:not-allowed;}
+  .rec-controls{display:flex;gap:.8rem;justify-content:center;flex-wrap:wrap;}
+  #timer{font-size:2rem;font-weight:700;letter-spacing:2px;color:var(--accent);margin:.8rem 0;}
+  #rec-status{font-size:.85rem;color:var(--sub);}
+  audio#playback{width:100%;margin-top:1rem;border-radius:8px;}
+  #upload-label{display:block;cursor:pointer;padding:.75rem;border:1px dashed var(--border);border-radius:8px;text-align:center;color:var(--sub);font-size:.9rem;transition:border-color .2s;}
+  #upload-label:hover{border-color:var(--accent);color:var(--accent);}
+  #file-name{font-size:.8rem;color:var(--sub);margin-top:.4rem;text-align:center;}
+  #submit-btn{width:100%;margin-top:1.5rem;}
+  .toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);padding:.8rem 1.5rem;border-radius:10px;font-size:.9rem;font-weight:600;z-index:999;animation:fadein .3s ease;}
+  .toast.success{background:var(--green);color:#0f1117;}
+  .toast.error{background:var(--red);color:#fff;}
+  @keyframes fadein{from{opacity:0;transform:translateX(-50%) translateY(20px);}to{opacity:1;transform:translateX(-50%) translateY(0);}}
+  .props-box{background:#0f1117;border:1px solid var(--border);border-radius:10px;padding:1rem;margin-top:1rem;font-size:.88rem;}
+  .props-box h4{color:var(--accent2);margin-bottom:.6rem;}
+  .prop-row{display:flex;justify-content:space-between;padding:.25rem 0;border-bottom:1px solid var(--border);}
+  .prop-row:last-child{border-bottom:none;}
+  .prop-key{color:var(--sub);}
+  .prop-val{color:var(--text);font-weight:500;}
+  .pulse{animation:pulse 1.5s infinite;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>Consult<span>Bae</span> Audio Portal</h1>
+  <p>Submit your voice recording for gig project onboarding.</p>
+  <nav>
+    <a href="/" class="active">Submit Audio</a>
+    <a href="/submissions">View Submissions</a>
+  </nav>
+</header>
+
+<div class="card">
+  <form id="submit-form">
+    <div class="field">
+      <label>Full Name *</label>
+      <input type="text" id="name" placeholder="e.g. Priya Singh" required/>
+    </div>
+    <div class="field">
+      <label>Phone Number</label>
+      <input type="tel" id="phone" placeholder="+91 9000000000"/>
+    </div>
+
+    <div class="divider">Record in browser</div>
+
+    <div class="rec-area">
+      <p>Click to start recording your audio directly in the browser.</p>
+      <div id="timer">0:00</div>
+      <div id="rec-status">Ready</div>
+      <div class="rec-controls" style="margin-top:1rem;">
+        <button type="button" class="btn btn-primary" id="startBtn">⏺ Start Recording</button>
+        <button type="button" class="btn btn-danger" id="stopBtn" disabled>⏹ Stop</button>
+      </div>
+      <audio id="playback" controls style="display:none;"></audio>
+    </div>
+
+    <div class="divider">or upload a file</div>
+
+    <label id="upload-label" for="file-upload">
+      📁 Choose audio file (WAV, MP3, OGG, M4A, FLAC)
+      <input type="file" id="file-upload" accept="audio/*" style="display:none;"/>
+    </label>
+    <div id="file-name"></div>
+
+    <button type="submit" class="btn btn-primary" id="submit-btn" disabled>
+      ✓ Submit Recording
+    </button>
+  </form>
+
+  <div id="props-result" style="display:none;"></div>
+</div>
+
+<script>
+let mediaRecorder = null;
+let audioChunks   = [];
+let recordedBlob  = null;
+let uploadedFile  = null;
+let timerInterval = null;
+let seconds       = 0;
+
+const startBtn   = document.getElementById('startBtn');
+const stopBtn    = document.getElementById('stopBtn');
+const playback   = document.getElementById('playback');
+const timerEl    = document.getElementById('timer');
+const statusEl   = document.getElementById('rec-status');
+const submitBtn  = document.getElementById('submit-btn');
+const fileUpload = document.getElementById('file-upload');
+const fileNameEl = document.getElementById('file-name');
+
+function fmtTime(s){ return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`; }
+
+function enableSubmit(){
+  const hasSomething = recordedBlob || uploadedFile;
+  submitBtn.disabled = !hasSomething;
+}
+
+startBtn.addEventListener('click', async () => {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({audio:true});
+    audioChunks  = [];
+    recordedBlob = null;
+    playback.style.display = 'none';
+    uploadedFile = null;
+    fileNameEl.textContent = '';
+
+    // Prefer opus/webm for broad support; fallback to whatever browser supports
+    const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+      ? 'audio/webm;codecs=opus'
+      : MediaRecorder.isTypeSupported('audio/ogg;codecs=opus')
+        ? 'audio/ogg;codecs=opus'
+        : '';
+
+    mediaRecorder = mimeType
+      ? new MediaRecorder(stream, {mimeType})
+      : new MediaRecorder(stream);
+
+    mediaRecorder.ondataavailable = e => { if(e.data.size>0) audioChunks.push(e.data); };
+    mediaRecorder.onstop = () => {
+      const mime = mediaRecorder.mimeType || 'audio/webm';
+      recordedBlob = new Blob(audioChunks, {type: mime});
+      const url    = URL.createObjectURL(recordedBlob);
+      playback.src = url;
+      playback.style.display = 'block';
+      statusEl.textContent   = 'Recording saved — review below';
+      stream.getTracks().forEach(t=>t.stop());
+      enableSubmit();
+    };
+
+    mediaRecorder.start(250);
+    seconds = 0;
+    timerEl.textContent = fmtTime(0);
+    timerInterval = setInterval(()=>{ seconds++; timerEl.textContent=fmtTime(seconds); },1000);
+    startBtn.disabled = true;
+    stopBtn.disabled  = false;
+    statusEl.innerHTML = '<span class="pulse">● Recording…</span>';
+  } catch(err) {
+    showToast('Microphone access denied: ' + err.message, 'error');
+  }
+});
+
+stopBtn.addEventListener('click', () => {
+  if(mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+  clearInterval(timerInterval);
+  startBtn.disabled = false;
+  stopBtn.disabled  = true;
+});
+
+fileUpload.addEventListener('change', e => {
+  const f = e.target.files[0];
+  if(f){
+    uploadedFile = f;
+    recordedBlob = null;
+    playback.style.display = 'none';
+    fileNameEl.textContent = `Selected: ${f.name} (${(f.size/1024).toFixed(1)} KB)`;
+    enableSubmit();
+  }
+});
+
+document.getElementById('submit-form').addEventListener('submit', async e => {
+  e.preventDefault();
+  const name  = document.getElementById('name').value.trim();
+  const phone = document.getElementById('phone').value.trim();
+  if(!name){ showToast('Please enter your name', 'error'); return; }
+
+  const fd = new FormData();
+  fd.append('name', name);
+  fd.append('phone', phone);
+
+  if(recordedBlob){
+    const ext = recordedBlob.type.includes('ogg') ? 'ogg' : 'webm';
+    fd.append('audio', recordedBlob, `recording.${ext}`);
+  } else if(uploadedFile){
+    fd.append('audio', uploadedFile, uploadedFile.name);
+  } else {
+    showToast('Please record or upload audio first', 'error');
+    return;
+  }
+
+  submitBtn.disabled   = true;
+  submitBtn.textContent = '⏳ Uploading…';
+
+  try {
+    const res = await fetch('/api/submit', {method:'POST', body:fd});
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error || 'Upload failed');
+
+    showToast('Submission successful!', 'success');
+    renderProps(data.properties);
+    // Reset
+    recordedBlob = null; uploadedFile = null;
+    playback.style.display = 'none';
+    fileNameEl.textContent = '';
+    document.getElementById('name').value  = '';
+    document.getElementById('phone').value = '';
+  } catch(err){
+    showToast('Error: ' + err.message, 'error');
+  } finally {
+    submitBtn.disabled   = false;
+    submitBtn.textContent = '✓ Submit Recording';
+    enableSubmit();
+  }
+});
+
+function renderProps(p){
+  const box = document.getElementById('props-result');
+  if(!p){ box.style.display='none'; return; }
+  const rows = [
+    ['Duration',     p.duration_sec    != null ? p.duration_sec.toFixed(2) + ' s'   : '—'],
+    ['Sample Rate',  p.sample_rate_khz != null ? p.sample_rate_khz + ' kHz'          : '—'],
+    ['Bitrate',      p.bitrate_kbps    != null ? p.bitrate_kbps.toFixed(1) + ' kbps' : '—'],
+    ['Loudness',     p.loudness_db     != null ? p.loudness_db.toFixed(1) + ' dB'    : '—'],
+    ['Noise Quality',p.noise_estimate  || '—'],
+  ];
+  box.innerHTML = `
+    <div class="props-box">
+      <h4>📊 Extracted Audio Properties</h4>
+      ${rows.map(([k,v])=>`<div class="prop-row"><span class="prop-key">${k}</span><span class="prop-val">${v}</span></div>`).join('')}
+    </div>`;
+  box.style.display = 'block';
+}
+
+function showToast(msg, type='success'){
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(()=>t.remove(), 3500);
+}
+</script>
+</body>
+</html>

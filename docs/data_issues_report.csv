@@ -1,0 +1,92 @@
+source,row_identifier,field,raw_value,action,note
+source1,manish.reddy73@example.com,Applied Date,2026-08-08,kept_raw,Could not parse into ISO date
+source1,manish.reddy73@example.com,Phone,9000000237,normalized,"Plain 10-digit number, no country code or leading zero"
+source1,priya.singh61@mailtest.example.org,Phone,9000000287,normalized,"Plain 10-digit number, no country code or leading zero"
+source1,vikram.saxena60@example.com,Phone,9000000113,normalized,"Plain 10-digit number, no country code or leading zero"
+source1,amit.agarwal3@mailtest.example.org,Current CTC,4.2,converted_lakhs_to_rupees,Value < 100 treated as lakhs → 420000.0
+source1,shreya.gupta85@example.com,Current CTC,8.3,converted_lakhs_to_rupees,Value < 100 treated as lakhs → 830000.0
+source1,shreya.gupta85@example.com,Phone,9000000227,normalized,"Plain 10-digit number, no country code or leading zero"
+source1,isha.chopra95@mailtest.example.org,Applied Date,2026-08-02,kept_raw,Could not parse into ISO date
+source1,isha.chopra95@mailtest.example.org,Phone,9000000138,normalized,"Plain 10-digit number, no country code or leading zero"
+source1,rohit.mishra70@mailtest.example.org,Applied Date,2026-07-13,kept_raw,Could not parse into ISO date
+source1,rohit.mishra70@mailtest.example.org,Phone,9000000167,normalized,"Plain 10-digit number, no country code or leading zero"
+source1,rahul.malhotra69@mailtest.example.org,Phone,9000000260,normalized,"Plain 10-digit number, no country code or leading zero"
+source1,rahul.jain34@example.in,Applied Date,2026-06-24,kept_raw,Could not parse into ISO date
+source1,rahul.jain34@example.in,Phone,9000000114,normalized,"Plain 10-digit number, no country code or leading zero"
+source1,nikhil.malhotra41@example.in,Current CTC,5.1,converted_lakhs_to_rupees,Value < 100 treated as lakhs → 510000.0
+source1,nikhil.malhotra41@example.in,Phone,9000000145,normalized,"Plain 10-digit number, no country code or leading zero"
+source1,ritu.sharma23@mailtest.example.org,Current CTC,6.1,converted_lakhs_to_rupees,Value < 100 treated as lakhs → 610000.0
+source1,ritu.sharma23@mailtest.example.org,Applied Date,2026-08-03,kept_raw,Could not parse into ISO date
+source1,ritu.sharma23@mailtest.example.org,Phone,9000000146,normalized,"Plain 10-digit number, no country code or leading zero"
+source1,arjun.mishra70@example.com,Current CTC,5.8,converted_lakhs_to_rupees,Value < 100 treated as lakhs → 580000.0
+source1,arjun.mishra70@example.com,Phone,9000000106,normalized,"Plain 10-digit number, no country code or leading zero"
+source1,meera.bhatia52@mailtest.example.org,Current CTC,11.2,converted_lakhs_to_rupees,Value < 100 treated as lakhs → 1120000.0
+source1,meera.bhatia52@mailtest.example.org,Applied Date,2026-07-03,kept_raw,Could not parse into ISO date
+source1,meera.bhatia52@mailtest.example.org,Phone,9000000223,normalized,"Plain 10-digit number, no country code or leading zero"
+source1,varun.jain29@example.com,Current CTC,7.6,converted_lakhs_to_rupees,Value < 100 treated as lakhs → 760000.0
+source1,varun.jain29@example.com,Phone,9000000263,normalized,"Plain 10-digit number, no country code or leading zero"
+source1,arjun.mehta9@example.in,Phone,9000000131,normalized,"Plain 10-digit number, no country code or leading zero"
+source1,kavya.mehta7@example.com,Current CTC,2.4,converted_lakhs_to_rupees,Value < 100 treated as lakhs → 240000.0
+source1,sneha.chopra99@example.in,Current CTC,10.0,converted_lakhs_to_rupees,Value < 100 treated as lakhs → 1000000.0
+source1,deepak.mehta86@example.in,Applied Date,2026-07-23,kept_raw,Could not parse into ISO date
+source1,deepak.mehta86@example.in,Phone,9000000116,normalized,"Plain 10-digit number, no country code or leading zero"
+source1,pooja.gupta57@mailtest.example.org,Current CTC,11.9,converted_lakhs_to_rupees,Value < 100 treated as lakhs → 1190000.0
+source1,pooja.gupta57@mailtest.example.org,Phone,9000000271,normalized,"Plain 10-digit number, no country code or leading zero"
+source1,rohit.verma13@mailtest.example.org,Full Name,R. Verma,kept_as_is,Abbreviated first name — cannot expand
+source1,rohit.verma13@mailtest.example.org,Current CTC,6.1,converted_lakhs_to_rupees,Value < 100 treated as lakhs → 610000.0
+source1,rohit.verma13@mailtest.example.org,Phone,9000000294,normalized,"Plain 10-digit number, no country code or leading zero"
+source1,sneha.mishra14@mailtest.example.org,Phone,9000000229,normalized,"Plain 10-digit number, no country code or leading zero"
+source1,Nikhil Chopra,Email,alt.nikhil.chopra70@example.com,stripped_alt_prefix,Alternate-email marker removed for dedup matching
+source1,nikhil.chopra70@example.com,Current CTC,7.8,converted_lakhs_to_rupees,Value < 100 treated as lakhs → 780000.0
+source1,nikhil.chopra70@example.com,Phone,9000000103,normalized,"Plain 10-digit number, no country code or leading zero"
+source1,priya.saxena61@example.com,Current CTC,6.6,converted_lakhs_to_rupees,Value < 100 treated as lakhs → 660000.0
+source1,varun.saxena21@example.in,Phone,9000000170,normalized,"Plain 10-digit number, no country code or leading zero"
+source1,gaurav.mehta79@mailtest.example.org,Phone,9000000133,normalized,"Plain 10-digit number, no country code or leading zero"
+source1,rohit.verma13@mailtest.example.org,Current CTC,6.1,converted_lakhs_to_rupees,Value < 100 treated as lakhs → 610000.0
+source1,rohit.verma13@mailtest.example.org,Phone,9000000294,normalized,"Plain 10-digit number, no country code or leading zero"
+source1,rohit.verma13@mailtest.example.org,Email,rohit.verma13@mailtest.example.org,flagged_intra_duplicate,Same email as row index 23
+source1,Rohit Verma,Phone,9000000294,flagged_intra_duplicate,Same phone as row index 23
+source1,rohit.nair32@mailtest.example.org,Current CTC,7.6,converted_lakhs_to_rupees,Value < 100 treated as lakhs → 760000.0
+source1,rohit.nair32@mailtest.example.org,Applied Date,2026-08-19,kept_raw,Could not parse into ISO date
+source1,deepak.nair44@example.com,Phone,9000000296,normalized,"Plain 10-digit number, no country code or leading zero"
+source1,rahul.chopra70@example.com,Current CTC,2.7,converted_lakhs_to_rupees,Value < 100 treated as lakhs → 270000.0
+source1,rahul.chopra70@example.com,Phone,9000000137,normalized,"Plain 10-digit number, no country code or leading zero"
+source1,deepak.singh36@mailtest.example.org,Phone,9000000202,normalized,"Plain 10-digit number, no country code or leading zero"
+source1,amit.reddy9@mailtest.example.org,Current CTC,11.4,converted_lakhs_to_rupees,Value < 100 treated as lakhs → 1140000.0
+source1,amit.reddy9@mailtest.example.org,Phone,9000000165,normalized,"Plain 10-digit number, no country code or leading zero"
+source1,nikhil.chopra70@example.com,Current CTC,7.8,converted_lakhs_to_rupees,Value < 100 treated as lakhs → 780000.0
+source1,nikhil.chopra70@example.com,Phone,9000000103,normalized,"Plain 10-digit number, no country code or leading zero"
+source1,nikhil.chopra70@example.com,Email,nikhil.chopra70@example.com,flagged_intra_duplicate,Same email as row index 25
+source1,Nikhil Chopra,Phone,9000000103,flagged_intra_duplicate,Same phone as row index 25
+source1,nikhil.mehta5@example.com,Current CTC,9.3,converted_lakhs_to_rupees,Value < 100 treated as lakhs → 930000.0
+source1,nikhil.mehta5@example.com,Applied Date,2026-07-26,kept_raw,Could not parse into ISO date
+source1,nikhil.mehta5@example.com,Phone,9000000104,normalized,"Plain 10-digit number, no country code or leading zero"
+source1,isha.kapoor54@example.com,Current CTC,5.9,converted_lakhs_to_rupees,Value < 100 treated as lakhs → 590000.0
+source1,arjun.bhatia14@example.com,Phone,9000000212,normalized,"Plain 10-digit number, no country code or leading zero"
+source1,isha.sharma15@example.com,Current CTC,10.3,converted_lakhs_to_rupees,Value < 100 treated as lakhs → 1030000.0
+source1,neha.bhatia60@mailtest.example.org,Phone,9000000273,normalized,"Plain 10-digit number, no country code or leading zero"
+source2,row_10,row,"{'email_id': nan, 'worker_name': nan, 'rate': nan, 'location': nan, 'status': nan, 'skill_tags': nan}",skipped,Blank row
+source2,row_18,row,"react, javascript, mysql",skipped,Column-shifted row — skills in email_id field
+source3,file_level,header_row,duplicate header,dropped,Header repeated at index(es): [14]
+source3,Priya Saxena,Phone Number,919000000231,normalized,Removed 91 country prefix
+source3,Arjun Mehta,Phone Number,+91-9000000131,normalized,Removed 91 country prefix
+source3,Nikhil Mehta,Phone Number,+91-9000000104,normalized,Removed 91 country prefix
+source3,Rahul Malhotra,Phone Number,919000000260,normalized,Removed 91 country prefix
+source3,Shreya Gupta,Phone Number,+91-9000000227,normalized,Removed 91 country prefix
+source3,Varun Jain,Phone Number,919000000263,normalized,Removed 91 country prefix
+source3,Tanvi Agarwal,Phone Number,919000000148,normalized,Removed 91 country prefix
+source3,Arjun Mishra,Phone Number,919000000106,normalized,Removed 91 country prefix
+source3,Isha Kapoor,Phone Number,+91-9000000295,normalized,Removed 91 country prefix
+source3,Isha Chopra,Phone Number,919000000138,normalized,Removed 91 country prefix
+source3,Meera Bhatia,Phone Number,919000000223,normalized,Removed 91 country prefix
+source3,Varun Saxena,Phone Number,919000000170,normalized,Removed 91 country prefix
+source3,Sneha Chopra,Phone Number,+91-9000000162,normalized,Removed 91 country prefix
+source3,Deepak Nair,Phone Number,919000000296,normalized,Removed 91 country prefix
+source3,Manish Bhatia,Phone Number,919000000161,normalized,Removed 91 country prefix
+source3,Karan Chopra,Phone Number,919000000245,normalized,Removed 91 country prefix
+source3,Vikram Mehta,Phone Number,+91-9000000261,normalized,Removed 91 country prefix
+merge,Arjun Mehta,match_method,name_fallback,matched_by_name,Phone not in s1/s2; name matched to arjun.mehta9@example.in
+merge,Manish Bhatia,match_method,name_fallback,matched_by_name,Phone not in s1/s2; name matched to manish.bhatia3@example.com
+merge,Divya Chopra,match_method,name_fallback,matched_by_name,Phone not in s1/s2; name matched to divya.chopra59@example.in
+merge,Karan Chopra,match_method,name_fallback,matched_by_name,Phone not in s1/s2; name matched to karan.chopra76@mailtest.example.org
+merge,Vikram Mehta,match_method,name_fallback,matched_by_name,Phone not in s1/s2; name matched to vikram.mehta6@example.com

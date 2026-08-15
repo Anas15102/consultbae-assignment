@@ -1,0 +1,162 @@
+{
+  "name": "ConsultBae — CSV Duplicate Checker",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "new-csv-upload",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook: Receive CSV",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "consultbae-csv-upload"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse incoming CSV rows from webhook body\n// Expected: { csv: \"<base64 or raw CSV string>\", filename: \"xyz.csv\" }\nconst body = $input.first().json.body || $input.first().json;\nconst csvText = body.csv_data || body.csv || '';\nconst filename = body.filename || 'uploaded.csv';\n\nif (!csvText) {\n  throw new Error('No CSV data received');\n}\n\n// Simple CSV parser\nfunction parseCSV(text) {\n  const lines = text.trim().split('\\n');\n  const headers = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/[^a-z0-9_]/g,'_'));\n  return lines.slice(1).filter(l => l.trim()).map(line => {\n    // Handle quoted fields\n    const vals = [];\n    let cur = '', inQ = false;\n    for (const ch of line) {\n      if (ch === '\"') { inQ = !inQ; }\n      else if (ch === ',' && !inQ) { vals.push(cur.trim()); cur = ''; }\n      else { cur += ch; }\n    }\n    vals.push(cur.trim());\n    const obj = {};\n    headers.forEach((h, i) => obj[h] = vals[i] || '');\n    return obj;\n  });\n}\n\nconst rows = parseCSV(csvText);\nreturn rows.map(r => ({ json: { ...r, _filename: filename } }));"
+      },
+      "id": "parse-csv",
+      "name": "Parse CSV Rows",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [480, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Normalize email and phone for matching\nconst row = $input.first().json;\n\nfunction normalizeEmail(e) {\n  if (!e) return null;\n  return e.trim().toLowerCase().replace(/^alt\\./, '');\n}\n\nfunction normalizePhone(p) {\n  if (!p) return null;\n  const d = p.replace(/\\D/g, '');\n  if (d.length === 12 && d.startsWith('91')) return d.slice(2);\n  if (d.length === 11 && d.startsWith('0')) return d.slice(1);\n  if (d.length === 10) return d;\n  return null;\n}\n\n// Try to find email in multiple common column names\nconst email = normalizeEmail(\n  row.email || row.email_id || row.e_mail || row.mail || ''\n);\nconst phone = normalizePhone(\n  row.phone || row.phone_number || row.mobile || row.contact || ''\n);\nconst name = (row.full_name || row.worker_name || row.name || '').trim();\n\nreturn [{ json: { ...row, _norm_email: email, _norm_phone: phone, _norm_name: name } }];"
+      },
+      "id": "normalize-fields",
+      "name": "Normalize Fields",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [710, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT id, name, email, phone, sources FROM persons WHERE email = '{{ $json._norm_email }}' OR phone = '{{ $json._norm_phone }}' LIMIT 5",
+        "options": {}
+      },
+      "id": "db-lookup",
+      "name": "SQLite: Check Duplicate",
+      "type": "n8n-nodes-base.sqlite",
+      "typeVersion": 1,
+      "position": [940, 300],
+      "credentials": {
+        "sqlite": {
+          "id": "consultbae-sqlite",
+          "name": "ConsultBae DB"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{ $json.length }}",
+              "operation": "larger",
+              "value2": 0
+            }
+          ]
+        }
+      },
+      "id": "is-duplicate",
+      "name": "Is Duplicate?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1170, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Build duplicate alert message\nconst incoming = $('Normalize Fields').first().json;\nconst matches  = $input.all().map(i => i.json);\n\nconst msg = [\n  `🔴 *Duplicate Alert — ConsultBae CSV Checker*`,\n  ``,\n  `*Incoming record:*`,\n  `• Name:  ${incoming._norm_name || '—'}`,\n  `• Email: ${incoming._norm_email || '—'}`,\n  `• Phone: ${incoming._norm_phone || '—'}`,\n  `• File:  ${incoming._filename || '—'}`,\n  ``,\n  `*Matched existing records (${matches.length}):*`,\n  ...matches.map((m,i) => `${i+1}. ${m.name} | ${m.email||'—'} | ${m.phone||'—'} | sources: ${m.sources||'—'}`),\n].join('\\n');\n\nreturn [{ json: { alert_message: msg, incoming, matches } }];"
+      },
+      "id": "build-alert",
+      "name": "Build Alert Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1400, 200]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "resource": "message",
+        "operation": "post",
+        "channel": "#data-alerts",
+        "text": "={{ $json.alert_message }}",
+        "otherOptions": {}
+      },
+      "id": "slack-alert",
+      "name": "Slack: Send Duplicate Alert",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 1,
+      "position": [1630, 200],
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "slack-consultbae",
+          "name": "ConsultBae Slack"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Tag the record as new — optionally insert it\nconst row = $input.first().json;\nreturn [{ json: { status: 'new_record', record: row } }];"
+      },
+      "id": "mark-new",
+      "name": "Mark as New Record",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1400, 420]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ status: 'ok', duplicates_found: $('Is Duplicate?').first().json.length || 0 }) }}"
+      },
+      "id": "respond",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1860, 300]
+    }
+  ],
+  "connections": {
+    "Webhook: Receive CSV": {
+      "main": [[ { "node": "Parse CSV Rows", "type": "main", "index": 0 } ]]
+    },
+    "Parse CSV Rows": {
+      "main": [[ { "node": "Normalize Fields", "type": "main", "index": 0 } ]]
+    },
+    "Normalize Fields": {
+      "main": [[ { "node": "SQLite: Check Duplicate", "type": "main", "index": 0 } ]]
+    },
+    "SQLite: Check Duplicate": {
+      "main": [[ { "node": "Is Duplicate?", "type": "main", "index": 0 } ]]
+    },
+    "Is Duplicate?": {
+      "main": [
+        [ { "node": "Build Alert Message", "type": "main", "index": 0 } ],
+        [ { "node": "Mark as New Record",  "type": "main", "index": 0 } ]
+      ]
+    },
+    "Build Alert Message": {
+      "main": [[ { "node": "Slack: Send Duplicate Alert", "type": "main", "index": 0 } ]]
+    },
+    "Slack: Send Duplicate Alert": {
+      "main": [[ { "node": "Respond to Webhook", "type": "main", "index": 0 } ]]
+    },
+    "Mark as New Record": {
+      "main": [[ { "node": "Respond to Webhook", "type": "main", "index": 0 } ]]
+    }
+  },
+  "active": false,
+  "settings": {},
+  "tags": ["consultbae", "dedup", "automation"],
+  "meta": {
+    "description": "Receives a new CSV via webhook, normalizes each row, checks against the ConsultBae SQLite database for duplicate email/phone, and sends a Slack alert if a duplicate is found."
+  }
+}

@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>ConsultBae — Submissions</title>
+<style>
+  :root{--bg:#0f1117;--card:#1a1d27;--border:#2e3147;--accent:#6c63ff;--accent2:#4ecca3;--text:#e8eaf6;--sub:#9396a5;--red:#ff6b6b;--green:#4ecca3;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;padding:2rem 1rem;}
+  header{max-width:1000px;margin:0 auto 2rem;}
+  header h1{font-size:1.6rem;font-weight:700;}
+  header h1 span{color:var(--accent);}
+  header p{color:var(--sub);margin-top:.3rem;font-size:.9rem;}
+  nav{display:flex;gap:1rem;margin-top:1rem;}
+  nav a{color:var(--accent);text-decoration:none;font-size:.9rem;padding:.3rem .8rem;border-radius:6px;border:1px solid var(--border);transition:all .2s;}
+  nav a:hover,nav a.active{background:var(--accent);color:#fff;}
+  .container{max-width:1000px;margin:0 auto;}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;margin-bottom:2rem;}
+  .stat{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.2rem;text-align:center;}
+  .stat .val{font-size:1.8rem;font-weight:700;color:var(--accent);}
+  .stat .lbl{font-size:.8rem;color:var(--sub);margin-top:.3rem;}
+  .search-bar{display:flex;gap:.8rem;margin-bottom:1.5rem;}
+  .search-bar input{flex:1;padding:.7rem 1rem;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:.95rem;outline:none;}
+  .search-bar input:focus{border-color:var(--accent);}
+  table{width:100%;border-collapse:collapse;background:var(--card);border-radius:12px;overflow:hidden;border:1px solid var(--border);}
+  thead{background:#12141e;}
+  th{padding:.9rem 1rem;text-align:left;font-size:.8rem;color:var(--sub);text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border);}
+  td{padding:.85rem 1rem;font-size:.88rem;border-bottom:1px solid var(--border);vertical-align:middle;}
+  tr:last-child td{border-bottom:none;}
+  tr:hover td{background:#1f2234;}
+  .badge{display:inline-block;padding:.2rem .6rem;border-radius:20px;font-size:.75rem;font-weight:600;}
+  .badge-clean{background:rgba(78,204,163,.15);color:var(--green);}
+  .badge-moderate{background:rgba(255,200,80,.15);color:#ffc850;}
+  .badge-high{background:rgba(255,107,107,.15);color:var(--red);}
+  .badge-unknown{background:rgba(147,150,165,.15);color:var(--sub);}
+  .play-btn{background:var(--accent);border:none;border-radius:50%;width:32px;height:32px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:.9rem;transition:background .2s;}
+  .play-btn:hover{background:#5a52e8;}
+  .play-btn.playing{background:var(--green);color:#0f1117;}
+  .empty{text-align:center;padding:4rem;color:var(--sub);}
+  .empty p{font-size:1rem;margin-top:.5rem;}
+  #loading{text-align:center;padding:3rem;color:var(--sub);}
+  .duration-bar{display:inline-block;height:4px;background:var(--accent);border-radius:2px;vertical-align:middle;margin-left:.4rem;}
+</style>
+</head>
+<body>
+<header>
+  <h1>Consult<span>Bae</span> Audio Portal</h1>
+  <p>All submitted audio recordings</p>
+  <nav>
+    <a href="/">Submit Audio</a>
+    <a href="/submissions" class="active">View Submissions</a>
+  </nav>
+</header>
+
+<div class="container">
+  <div class="stats" id="stats">
+    <div class="stat"><div class="val" id="stat-total">—</div><div class="lbl">Total Submissions</div></div>
+    <div class="stat"><div class="val" id="stat-duration">—</div><div class="lbl">Avg Duration (s)</div></div>
+    <div class="stat"><div class="val" id="stat-loudness">—</div><div class="lbl">Avg Loudness (dB)</div></div>
+    <div class="stat"><div class="val" id="stat-clean">—</div><div class="lbl">Clean Recordings</div></div>
+  </div>
+
+  <div class="search-bar">
+    <input type="text" id="search" placeholder="Search by name or phone…"/>
+  </div>
+
+  <div id="loading">Loading submissions…</div>
+
+  <table id="submissions-table" style="display:none;">
+    <thead>
+      <tr>
+        <th>Play</th>
+        <th>Name</th>
+        <th>Phone</th>
+        <th>Duration</th>
+        <th>Sample Rate</th>
+        <th>Bitrate</th>
+        <th>Loudness</th>
+        <th>Noise Quality</th>
+        <th>Submitted</th>
+      </tr>
+    </thead>
+    <tbody id="table-body"></tbody>
+  </table>
+
+  <div id="empty-state" class="empty" style="display:none;">
+    <span style="font-size:3rem;">🎙️</span>
+    <p>No submissions yet. <a href="/" style="color:var(--accent)">Be the first!</a></p>
+  </div>
+</div>
+
+<script>
+let allData = [];
+let activeAudio = null;
+let activeBtn   = null;
+
+async function load(){
+  try {
+    const res  = await fetch('/api/submissions');
+    allData    = await res.json();
+    document.getElementById('loading').style.display = 'none';
+    if(allData.length === 0){
+      document.getElementById('empty-state').style.display = 'block';
+    } else {
+      renderStats(allData);
+      renderTable(allData);
+      document.getElementById('submissions-table').style.display = 'table';
+    }
+  } catch(e){
+    document.getElementById('loading').textContent = 'Failed to load: ' + e.message;
+  }
+}
+
+function renderStats(data){
+  document.getElementById('stat-total').textContent = data.length;
+  const durations = data.filter(d=>d.duration_sec!=null).map(d=>d.duration_sec);
+  document.getElementById('stat-duration').textContent =
+    durations.length ? (durations.reduce((a,b)=>a+b,0)/durations.length).toFixed(1) : '—';
+  const ldb = data.filter(d=>d.loudness_db!=null).map(d=>d.loudness_db);
+  document.getElementById('stat-loudness').textContent =
+    ldb.length ? (ldb.reduce((a,b)=>a+b,0)/ldb.length).toFixed(1) : '—';
+  const clean = data.filter(d=>d.noise_estimate && d.noise_estimate.includes('clean')).length;
+  document.getElementById('stat-clean').textContent = clean;
+}
+
+function noiseBadge(ne){
+  if(!ne) return '<span class="badge badge-unknown">—</span>';
+  if(ne.includes('clean'))    return `<span class="badge badge-clean">Clean</span>`;
+  if(ne.includes('moderate')) return `<span class="badge badge-moderate">Moderate</span>`;
+  if(ne.includes('high'))     return `<span class="badge badge-high">Noisy</span>`;
+  return `<span class="badge badge-unknown">${ne.split('(')[0].trim()}</span>`;
+}
+
+function fmtDate(d){
+  if(!d) return '—';
+  const dt = new Date(d);
+  return dt.toLocaleString('en-IN',{dateStyle:'medium',timeStyle:'short'});
+}
+
+function renderTable(data){
+  const tbody = document.getElementById('table-body');
+  if(data.length === 0){
+    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;color:var(--sub);padding:2rem;">No matching submissions</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = data.map((r,i) => `
+    <tr>
+      <td>
+        <button class="play-btn" data-src="/audio/${encodeURIComponent(r.audio_filename)}" id="pb-${r.id}"
+          onclick="togglePlay('${encodeURIComponent(r.audio_filename)}', 'pb-${r.id}')">▶</button>
+      </td>
+      <td><strong>${esc(r.person_name)}</strong></td>
+      <td>${esc(r.phone || '—')}</td>
+      <td>${r.duration_sec!=null ? r.duration_sec.toFixed(2)+' s' : '—'}</td>
+      <td>${r.sample_rate_khz!=null ? r.sample_rate_khz+' kHz' : '—'}</td>
+      <td>${r.bitrate_kbps!=null ? r.bitrate_kbps.toFixed(0)+' kbps' : '—'}</td>
+      <td>${r.loudness_db!=null ? r.loudness_db.toFixed(1)+' dB' : '—'}</td>
+      <td>${noiseBadge(r.noise_estimate)}</td>
+      <td style="color:var(--sub);font-size:.8rem;">${fmtDate(r.submitted_at)}</td>
+    </tr>
+  `).join('');
+}
+
+function togglePlay(src, btnId){
+  const btn = document.getElementById(btnId);
+  // If something else is playing, stop it
+  if(activeAudio && activeAudio.src !== window.location.origin + '/audio/' + src){
+    activeAudio.pause();
+    if(activeBtn) { activeBtn.textContent = '▶'; activeBtn.classList.remove('playing'); }
+    activeAudio = null; activeBtn = null;
+  }
+  if(!activeAudio){
+    activeAudio = new Audio('/audio/' + src);
+    activeAudio.onended = () => { btn.textContent='▶'; btn.classList.remove('playing'); activeAudio=null; activeBtn=null; };
+    activeAudio.play();
+    btn.textContent = '⏸';
+    btn.classList.add('playing');
+    activeBtn = btn;
+  } else {
+    if(activeAudio.paused){ activeAudio.play(); btn.textContent='⏸'; btn.classList.add('playing'); }
+    else { activeAudio.pause(); btn.textContent='▶'; btn.classList.remove('playing'); }
+  }
+}
+
+function esc(s){ const d=document.createElement('div'); d.appendChild(document.createTextNode(s)); return d.innerHTML; }
+
+document.getElementById('search').addEventListener('input', function(){
+  const q = this.value.trim().toLowerCase();
+  const filtered = q
+    ? allData.filter(r => (r.person_name||'').toLowerCase().includes(q) || (r.phone||'').includes(q))
+    : allData;
+  renderTable(filtered);
+});
+
+load();
+setInterval(load, 30000); // refresh every 30s
+</script>
+</body>
+</html>
