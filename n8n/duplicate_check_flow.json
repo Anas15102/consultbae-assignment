@@ -38,7 +38,16 @@
     {
       "parameters": {
         "method": "GET",
-        "url": "=http://localhost:5050/api/persons",
+        "url": "https://confusing-neuron-coauthor.ngrok-free.dev/api/persons",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "ngrok-skip-browser-warning",
+              "value": "true"
+            }
+          ]
+        },
         "options": {}
       },
       "id": "db-lookup",
